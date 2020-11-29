@@ -16,12 +16,19 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+// Things you need to work on:
+// Printing the current arrangement of tiles when the user chooses the print button
+// Javadoc comments
 /**
  * This class is used to contain the frame, the menu, the shapes, and the player options.
  * @author malik Tifah
  *
  */
 public class SlotMachineFrame extends JFrame{
+	private double playerBalance =5.00;
+	TilePanel panCenter;
+	private double playerBet; 
+	
 	/**
 	 * Constructor function that calls on frmstats which creates the frame
 	 */
@@ -36,38 +43,117 @@ public class SlotMachineFrame extends JFrame{
 	public void frmStats() {
 		
 		//Adjusting the frame dimensions, name, default close operation, and the container
+		setTitle("Vegas Baby Slot Machine");
 		Toolkit tk = Toolkit.getDefaultToolkit();
 		Dimension dim = tk.getScreenSize();
 		int screenWidth = (int)dim.getWidth();
 		int screenHeight = (int) dim.getHeight();
-		Container c = getContentPane();
-		setTitle("Vegas Baby Slot Machine");
 		int frameWidth= 800;
 		int frameHeight= 480;
 		// The frame is centered in the middle of the screen
 		int left = (screenWidth-frameWidth)/2;
 		int top = (screenHeight-frameHeight)/2;
 		setBounds(left,top,frameWidth,frameHeight);
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+		Container c = getContentPane();
 		c.setLayout(new BorderLayout());
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 		
 		//Center of the frame that contains the shapes
-		TilePanel panCenter = new TilePanel();
+		panCenter = new TilePanel();
 		c.add(panCenter,BorderLayout.CENTER);
 		
 		// Initializing the bottom of the frame which contains text fields and buttons
 		JPanel panSouth = new JPanel();
+		
+		JTextField mny = new JTextField(5);
 		JButton max = new JButton("Max");
+		max.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(playerBalance>0.009) { // This is used to prevent the player from betting if they have a balance less than 0.01
+					TileRandomizer tr = new TileRandomizer();
+					panCenter.setTiles(tr.getRandomTiles()); //Pushes the generated tile objects, into the tile Panel class
+					repaint();
+					TileChecker tc= new TileChecker(); // Checks for winning combinations
+					tc.numOfMatches(panCenter.getTiles());
+					 if(tc.getTotalMatches()) {
+						playerBalance*=100;
+					}else if(tc.getColorMatches()) {
+						playerBalance*=25;
+					}
+					else {
+						playerBalance = 0;
+					}
+					mny.setText(String.format("%.2f",playerBalance));
+					if(playerBalance <=0.009) {
+						 JOptionPane.showMessageDialog(null, "You have gone bankrupt :(");
+					 }
+				}
+			}
+		});
 		panSouth.add(max);
 		JButton mid = new JButton("Mid");
+		mid.addActionListener(new ActionListener(){ // Activated once the player hits the mid button
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(playerBalance>0.009) {
+					playerBet = playerBalance/2; 
+					playerBalance-= playerBet;
+					TileRandomizer tr = new TileRandomizer();
+					panCenter.setTiles(tr.getRandomTiles());
+					repaint();
+					TileChecker tc= new TileChecker();
+					tc.numOfMatches(panCenter.getTiles());
+					 if(tc.getTotalMatches()) {
+						playerBalance+=playerBet*50;
+					}else if(tc.getColorMatches()) {
+						playerBalance+=playerBet*10;
+					}
+					mny.setText(String.format("%.2f",playerBalance));
+					if(playerBalance <=0.009) {
+						playerBalance=0;
+						mny.setText(String.format("%.2f",playerBalance));
+						JOptionPane.showMessageDialog(null, "You have gone bankrupt :(");
+					 }
+				}
+			}
+		});
 		panSouth.add(mid);
-		JButton min = new JButton("Mid");
+		JButton min = new JButton("Min");
+		min.addActionListener(new ActionListener() { // Activated once the player hits the min button
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(playerBalance>0.009) {
+					playerBet = playerBalance/10.00; 
+					playerBalance-= playerBet;
+					TileRandomizer tr = new TileRandomizer();
+					panCenter.setTiles(tr.getRandomTiles());
+					repaint();
+					TileChecker tc= new TileChecker();
+					tc.numOfMatches(panCenter.getTiles());
+					 if(tc.getTotalMatches()) {
+						playerBalance += playerBet*10;
+					}else if(tc.getColorMatches()) {
+						playerBalance += playerBet*5;
+					}
+					 mny.setText(String.format("%.2f",playerBalance));
+					 if(playerBalance <=0.009) {
+						 playerBalance = 0;
+						 mny.setText(String.format("%.2f",playerBalance));
+						 JOptionPane.showMessageDialog(null, "You have gone bankrupt :(");
+					 }
+				}
+			}
+		});
 		panSouth.add(min);
 		JLabel dl = new JLabel("$");
-		JTextField mny = new JTextField(10);
+		
 		panSouth.add(dl);
 		panSouth.add(mny);
 		c.add(panSouth, BorderLayout.SOUTH);
+		
+		// Player balance
+		mny.setText(String.format("%.2f",playerBalance));
 		
 		// Allows the user to choose which file to open or close
 		JFileChooser jfc = new JFileChooser();
@@ -104,10 +190,32 @@ public class SlotMachineFrame extends JFrame{
 					}
 				}
 			}
-
 		});
-		JMenuItem print = new JMenuItem("Print"); //Not working at the moment
-		JMenuItem rst = new JMenuItem("Restart"); // Not working at the moment
+		JMenuItem print = new JMenuItem("Print");
+		print.addActionListener(new ActionListener() { // Activates once the user selets the print option. It reads the tiles on screen and prints their color and shape
+			public void actionPerformed(ActionEvent e) {
+				String[] colorTypes = {"Blue","Yellow","Red","Green","Orange"};
+				String[] shapeTypes = {"Rectangle","Circle"};
+				System.out.print("Current tiles: ");
+				for(int i=0; i<4; i++) {
+					System.out.print(colorTypes[panCenter.getColorValues(i)-1]+ " ");
+					System.out.print(shapeTypes[panCenter.getShapeValues(i)-1]);
+					if(i!=3) {
+						System.out.print(", ");
+					}
+				}
+				System.out.println();
+			}
+		});
+		JMenuItem rst = new JMenuItem("Restart");
+		rst.addActionListener(new ActionListener() {
+			// Resets the player's balance, and allows them to play the game again
+			public void actionPerformed(ActionEvent e) { 
+				JOptionPane.showMessageDialog(null, "The game has been reset");
+				playerBalance = 5.00;
+				mny.setText(String.format("%.2f",playerBalance));
+			}
+		});
 		JMenuItem ext = new JMenuItem("Exit"); // Allows the user to exit the program
 		ext.addActionListener( new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -135,4 +243,3 @@ public class SlotMachineFrame extends JFrame{
 		setJMenuBar(mbar);
 	}
 }
-

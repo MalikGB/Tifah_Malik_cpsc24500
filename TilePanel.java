@@ -22,20 +22,22 @@ public class TilePanel extends JPanel implements MouseListener{
 	private int radX= 100;
 	private int radY = 100;
 	private ArrayList<Tiles> shapes; // Contains an arraylist of Tile objects, which contains the shape and color of each tile
-	Tiles ti; // Default constructor object with no parameters
+	private ArrayList<Integer> colorValues;
+	private ArrayList<Integer> shapeValues;
+	TileRandomizer tr; // Default constructor object with no parameters
 	Tiles to; //Default constructor object with the parameters
-	private int tilegenMode; // Checks if a new set of tiles can be drawn (prevents new tiles being drawn when the frame is resized, or changed)
 	
 	/**
 	 * Default constructor that:
 	 * Activates the mouse listener that listens to the TilePanel class
 	 * Instantiates the arrayList called shapes which contains an array of Tile objects
-	 * Sets tilegenMode to 0 (draw a new set of tiles)
+	 * creates a tile randomizer object which will generates 4 new tiles that will be printed to the screen
 	 */
 	public TilePanel() {
 		addMouseListener(this);
-		tilegenMode = 0;
 		shapes = new ArrayList<Tiles>(); // Format: color shapeType
+		shapeValues = new ArrayList<Integer>();
+		colorValues = new ArrayList<Integer>();
 		x1 =50; 
 		y=150;
 		x2 =250;
@@ -43,7 +45,9 @@ public class TilePanel extends JPanel implements MouseListener{
 		x4=650;
 		radX= 100;
 		radY = 100;
-	}
+		tr = new TileRandomizer();
+		shapes=tr.getRandomTiles();
+	}	
 	/**
 	 * Get function for the ArrayList of tiles
 	 * @return the array of tile objects
@@ -59,6 +63,22 @@ public class TilePanel extends JPanel implements MouseListener{
 		shapes = Tile;
 	}
 	/**
+	 * ArrayList that stores all of the color values for each tile
+	 * @param i Index of the desired color value
+	 * @return a color value corresponding to a certain tile
+	 */
+	public int getColorValues(int i) {
+		return colorValues.get(i);
+	}
+	/**
+	 * ArrayList that stores all of the shape values for each tile
+	 * @param i Index of the desired shape value
+	 * @return a shape value corresponding to a certain tile
+	 */
+	public int getShapeValues(int i) {
+		return shapeValues.get(i);
+	}
+	/**
 	 * Paint component function, which includes:
 	 * The position, size, and shape type for each tile
 	 * Calls upon the setRandomly function in the Tiles class, which generates new color and shape values
@@ -68,20 +88,10 @@ public class TilePanel extends JPanel implements MouseListener{
 	@Override
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
-		ti = new Tiles(); // Calling on the Tiles constructor function
 		int index =0; // Used when reading data from the shapes arrayList
-		
 		// Shapes position and size
 		int[][]shapePos = {{x1,y,radX,radY},{x2,y,radX,radY},{x3,y,radX,radY},{x4,y,radX,radY}};
 		
-		// Generates a new set if colors and shape types, and stores them in the shapes array
-		if(tilegenMode ==0) {
-			for(int i=0; i<4;i++) {
-				ti.setRandomly();
-				to = new Tiles(ti.getColors(),ti.getShapes());
-				shapes.add(to);
-			}
-		}	
 			// Goes through all of the objects stored in shapes, and generates shapes based on the information
 			for(Tiles tiles: shapes) {
 				String parts[];
@@ -106,6 +116,7 @@ public class TilePanel extends JPanel implements MouseListener{
 						g.setColor(Color.ORANGE);
 						break;
 				}
+				colorValues.add(index,Integer.parseInt(parts[0]));
 				//Reads the shape portion of the tile object, and sets draws the shape that corresponds to the integer
 				switch(Integer.parseInt(parts[1])){
 					case(1):
@@ -114,9 +125,9 @@ public class TilePanel extends JPanel implements MouseListener{
 					case(2):
 						g.fillOval(shapePos[index][0], shapePos[index][1], shapePos[index][2], shapePos[index][3]);	
 				}
+				shapeValues.add(index, Integer.parseInt(parts[1]));
 				index++;
 			}
-		tilegenMode=1; // Makes it so a new set of shapes cannot be drawn
 	}
 	/**
 	 * This function is responsible for checking if the user has clicked on one of the shapes
@@ -124,8 +135,8 @@ public class TilePanel extends JPanel implements MouseListener{
 	 */
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		ti.setRandomly();
-		to = new Tiles(ti.getColors(),ti.getShapes());
+		tr = new TileRandomizer();
+		to = new Tiles(tr.getRandomColor(),tr.getRandomShape());
 		if(e.getX()>=x1 && e.getX()<=x1+radX && e.getY()>=y && e.getY()<=y+radY) {
 			shapes.set(0,to); // Replaces the Tile object's information at the 0th index
 			repaint();
@@ -140,29 +151,15 @@ public class TilePanel extends JPanel implements MouseListener{
 			repaint();
 		}
 	}
+	@Override
+	public void mousePressed(MouseEvent e) {}
 
 	@Override
-	public void mousePressed(MouseEvent e) {
-	
-	}
+	public void mouseReleased(MouseEvent e) {}
 
 	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
+	public void mouseEntered(MouseEvent e) {}
 
 	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		
-	}
-
-	
-
+	public void mouseExited(MouseEvent e) {}
 }

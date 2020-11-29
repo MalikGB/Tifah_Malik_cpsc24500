@@ -12,7 +12,6 @@ import java.util.Random;
 public class Tiles implements Serializable{
 	private int  color;
 	private int shape;
-	
 	/**
 	 * Constructor function that instantiates the color and shape values
 	 */
@@ -64,8 +63,13 @@ public class Tiles implements Serializable{
 	 * @param Color value passed into the function call
 	 */
 	public void setColors(int col) {
-		color = col;
-		
+		if(color<0) {
+			color=0;
+		}else if( color>4) {
+			color=4;
+		}else {
+			color = col;
+		}
 	}
 	/**
 	 * Override tostring function that formats the class objects to be printed in a specific way
